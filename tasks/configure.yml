@@ -1,0 +1,8 @@
+---
+- name: Disable root login via SSH
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PermitRootLogin '
+    insertafter: '#PermitRootLogin'
+    line: 'PermitRootLogin no'
+    

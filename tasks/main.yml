@@ -1,0 +1,17 @@
+---
+- name: Get current OpenSSH version
+  ansible.builtin.shell: "ssh -V 2>&1 | awk -F '[_,]' '{print $2}'"
+  register: current_version
+  changed_when: false
+
+- name: Check if OpenSSH is already installed
+  ansible.builtin.debug:
+    msg: "Current OpenSSH version is {{ current_version.stdout }}"
+
+- name: Proceed to install OpenSSH
+  ansible.builtin.include_tasks:
+    file: install.yml
+  when: current_version.stdout != openssh_ver
+
+- name: Refresh ssh connection
+  ansible.builtin.meta: reset_connection

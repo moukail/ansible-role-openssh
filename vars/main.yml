@@ -1,0 +1,2 @@
+---
+tarball_url: "https://ftp.nluug.nl/pub/OpenBSD/OpenSSH/portable/openssh-{{ openssh_ver }}.tar.gz"

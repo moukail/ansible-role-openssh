@@ -1,0 +1,88 @@
+---
+- name: Set zlib and pam packages
+  ansible.builtin.set_fact:
+    zlib_pkg: "{{ (ansible_facts['os_family'] | lower == 'redhat') | ternary('zlib-devel', 'zlib1g-dev') }}"
+    pam_pkg: "{{ (ansible_facts['os_family'] | lower == 'redhat') | ternary('pam-devel', 'libpam0g-dev') }}"
+
+- name: Installing dependencies
+  ansible.builtin.package:
+    name:
+      - gcc
+      - make
+      - "{{ zlib_pkg }}"
+      - "{{ pam_pkg }}"
+    update_cache: true
+    state: present
+
+- name: Create temporary build directory
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: build
+  register: tmp_dir
+
+- name: Downloading OpenSSH sources
+  ansible.builtin.get_url:
+    url: "{{ tarball_url }}"
+    dest: "{{ tmp_dir.path }}/openssh-{{ openssh_ver }}.tar.gz"
+    owner: root
+    group: root
+    mode: '0644'
+  register: openssh_source
+
+- name: Unpacking OpenSSH
+  ansible.builtin.unarchive:
+    copy: false
+    dest: "{{ tmp_dir.path }}"
+    src: "{{ openssh_source.dest }}"
+
+- name: Set install_dir
+  ansible.builtin.set_fact:
+    install_dir: "{{ tmp_dir.path }}/openssh-{{ openssh_ver }}"
+
+- name: Delete old ssh configs
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/ssh/ssh_config
+    - /etc/ssh/sshd_config
+  when: ansible_facts['os_family'] | lower == "redhat"
+
+- name: Configuring OpenSSH
+  ansible.builtin.command: "./configure --prefix=/usr --sysconfdir=/etc/ssh --with-pam --with-ssl-engine"
+  args:
+    chdir: "{{ install_dir }}"
+    creates: "{{ install_dir }}/Makefile"
+
+- name: Make OpenSSH
+  ansible.builtin.shell: make -j$(nproc) > /dev/null
+  args:
+    chdir: "{{ install_dir }}"
+    creates: "{{ install_dir }}/libssl.so"
+
+- name: Install OpenSSH
+  notify: Restart SSH
+  ansible.builtin.command: make install
+  args:
+    chdir: "{{ install_dir }}"
+
+- name: Find all SSH host keys
+  ansible.builtin.find:
+    paths: /etc/ssh
+    patterns: "ssh_host_*_key"
+  register: ssh_host_keys
+  when: ansible_facts['os_family'] | lower == "redhat"
+
+- name: Set permissions on SSH host keys
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    owner: root
+    group: root
+    mode: '0600'
+  loop: "{{ ssh_host_keys.files }}"
+  when: ansible_facts['os_family'] | lower == "redhat"
+
+- name: Delete temporary directory
+  ansible.builtin.file:
+    path: "{{ tmp_dir.path }}"
+    state: absent
