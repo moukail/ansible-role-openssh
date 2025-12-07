@@ -3,7 +3,7 @@
 galaxy_info:
   author: I Moukafih
   description: Ansible Role for OpenSSH
-  license: license (GPL-2.0-or-later, MIT, etc)
+  license: MIT
   min_ansible_version: "2.1"
   galaxy_tags:
     - OpenSSH
