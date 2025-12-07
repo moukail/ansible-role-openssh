@@ -1,4 +1,9 @@
-### Ansible Role OpenSSH
+Ansible Role OpenSSH
+=========
+
+Example Playbook
+----------------
+
 ```yml
 ---
 - name: Install OpenSSH
