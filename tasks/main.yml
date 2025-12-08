@@ -12,6 +12,3 @@
   ansible.builtin.include_tasks:
     file: install.yml
   when: current_version.stdout != openssh_ver
-
-- name: Refresh ssh connection
-  ansible.builtin.meta: reset_connection
