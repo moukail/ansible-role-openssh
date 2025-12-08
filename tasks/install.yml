@@ -61,7 +61,6 @@
     creates: "{{ install_dir }}/libssl.so"
 
 - name: Install OpenSSH
-  notify: Restart SSH
   ansible.builtin.command: make install
   args:
     chdir: "{{ install_dir }}"
@@ -86,3 +85,11 @@
   ansible.builtin.file:
     path: "{{ tmp_dir.path }}"
     state: absent
+
+- name: Restart SSH
+  ansible.builtin.service:
+    name: sshd
+    state: restarted
+
+- name: Refresh ssh connection
+  ansible.builtin.meta: reset_connection
