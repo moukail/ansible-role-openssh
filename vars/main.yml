@@ -1,5 +1,5 @@
 ---
 download_url: "https://ftp.nluug.nl/pub/OpenBSD/OpenSSH/portable/openssh-{{ openssh_version }}.tar.gz"
 pgp_key_url: "https://ftp.nluug.nl/pub/OpenBSD/OpenSSH/portable/openssh-{{ openssh_version }}.tar.gz.asc"
-signing_key_url: "https://www.openbsd.org/openssh/RELEASE_KEY.asc"
+signing_key_url: "https://ftp.nluug.nl/pub/OpenBSD/OpenSSH/RELEASE_KEY.asc"
 gpg_home: /etc/ansible/gnupg

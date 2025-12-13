@@ -10,7 +10,7 @@
 - name: Import OpenBSD OpenSSH signing key
   ansible.builtin.command:
     cmd: gpg --homedir {{ gpg_home }} --import
-    stdin: "{{ lookup('ansible.builtin.url', pgp_key_url) }}"
+    stdin: "{{ lookup('ansible.builtin.url', signing_key_url) }}"
   register: gpg_import
   changed_when: "'imported' in gpg_import.stderr"
 
