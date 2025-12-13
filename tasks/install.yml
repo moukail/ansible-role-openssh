@@ -25,7 +25,7 @@
     suffix: build
   register: tmp_dir
 
-- name: Download OpenSSH sources
+- name: Download OpenSSH {{ openssh_version }}
   ansible.builtin.get_url:
     url: "{{ download_url }}"
     dest: "{{ tmp_dir.path }}/openssh-{{ openssh_version }}.tar.gz"
@@ -60,7 +60,7 @@
     creates: "{{ build_dir }}/Makefile"
 
 - name: Make OpenSSH
-  ansible.builtin.shell: make -j$(nproc) > /dev/null
+  ansible.builtin.shell: make -j$(nproc)
   args:
     chdir: "{{ build_dir }}"
     creates: "{{ build_dir }}/libssl.so"
