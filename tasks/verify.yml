@@ -10,14 +10,14 @@
 - name: Import OpenBSD OpenSSH signing key
   ansible.builtin.command:
     cmd: gpg --homedir {{ gpg_home }} --import
-    stdin: "{{ lookup('ansible.builtin.url', openssh_signing_key_url) }}"
+    stdin: "{{ lookup('ansible.builtin.url', signing_key_url) }}"
   register: gpg_import
   changed_when: "'imported' in gpg_import.stderr"
 
 - name: Download OpenSSH PGP signature
   ansible.builtin.get_url:
     url: "{{ signature_url }}"
-    dest: "{{ tmp_dir.path }}/openssh-{{ openssh_ver }}.tar.gz.asc"
+    dest: "{{ tmp_dir.path }}/openssh-{{ openssh_version }}.tar.gz.asc"
     owner: root
     group: root
     mode: "0644"
@@ -27,8 +27,8 @@
     cmd: >
       gpg --homedir {{ gpg_home }}
       --verify
-      {{ tmp_dir.path }}/openssh-{{ openssh_ver }}.tar.gz.asc
-      {{ tmp_dir.path }}/openssh-{{ openssh_ver }}.tar.gz
+      {{ tmp_dir.path }}/openssh-{{ openssh_version }}.tar.gz.asc
+      {{ tmp_dir.path }}/openssh-{{ openssh_version }}.tar.gz
   changed_when: false
 
 - name: Enforce OpenBSD signing key fingerprint
