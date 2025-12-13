@@ -1,0 +1,39 @@
+---
+- name: Ensure GPG home directory exists
+  ansible.builtin.file:
+    path: "{{ gpg_home }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Import OpenBSD OpenSSH signing key
+  ansible.builtin.command:
+    cmd: gpg --homedir {{ gpg_home }} --import
+    stdin: "{{ lookup('ansible.builtin.url', openssh_signing_key_url) }}"
+  register: gpg_import
+  changed_when: "'imported' in gpg_import.stderr"
+
+- name: Download OpenSSH PGP signature
+  ansible.builtin.get_url:
+    url: "{{ signature_url }}"
+    dest: "{{ tmp_dir.path }}/openssh-{{ openssh_ver }}.tar.gz.asc"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Verify OpenSSH source tarball signature
+  ansible.builtin.command:
+    cmd: >
+      gpg --homedir {{ gpg_home }}
+      --verify
+      {{ tmp_dir.path }}/openssh-{{ openssh_ver }}.tar.gz.asc
+      {{ tmp_dir.path }}/openssh-{{ openssh_ver }}.tar.gz
+  changed_when: false
+
+- name: Enforce OpenBSD signing key fingerprint
+  ansible.builtin.command:
+    cmd: gpg --homedir {{ gpg_home }} --fingerprint
+  register: gpg_fingerprint
+  changed_when: false
+  failed_when: "'59C0 5E7F' not in gpg_fingerprint.stdout"

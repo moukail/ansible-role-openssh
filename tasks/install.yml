@@ -4,15 +4,20 @@
     zlib_pkg: "{{ (ansible_facts['os_family'] | lower == 'redhat') | ternary('zlib-devel', 'zlib1g-dev') }}"
     pam_pkg: "{{ (ansible_facts['os_family'] | lower == 'redhat') | ternary('pam-devel', 'libpam0g-dev') }}"
 
-- name: Installing dependencies
+- name: Install dependencies
   ansible.builtin.package:
     name:
       - gcc
       - make
+      - gpg
       - "{{ zlib_pkg }}"
       - "{{ pam_pkg }}"
     update_cache: true
     state: present
+
+- name: Include verification tasks
+  ansible.builtin.include_tasks:
+    file: verify.yml
 
 - name: Create temporary build directory
   ansible.builtin.tempfile:
@@ -20,10 +25,10 @@
     suffix: build
   register: tmp_dir
 
-- name: Downloading OpenSSH sources
+- name: Download OpenSSH sources
   ansible.builtin.get_url:
-    url: "{{ tarball_url }}"
-    dest: "{{ tmp_dir.path }}/openssh-{{ openssh_ver }}.tar.gz"
+    url: "{{ download_url }}"
+    dest: "{{ tmp_dir.path }}/openssh-{{ openssh_version }}.tar.gz"
     owner: root
     group: root
     mode: '0644'
@@ -37,7 +42,7 @@
 
 - name: Set install_dir
   ansible.builtin.set_fact:
-    install_dir: "{{ tmp_dir.path }}/openssh-{{ openssh_ver }}"
+    build_dir: "{{ tmp_dir.path }}/openssh-{{ openssh_version }}"
 
 - name: Delete old ssh configs
   ansible.builtin.file:
@@ -48,22 +53,22 @@
     - /etc/ssh/sshd_config
   when: ansible_facts['os_family'] | lower == "redhat"
 
-- name: Configuring OpenSSH
+- name: Configure OpenSSH
   ansible.builtin.command: "./configure --prefix=/usr --sysconfdir=/etc/ssh --with-pam --with-ssl-engine"
   args:
-    chdir: "{{ install_dir }}"
-    creates: "{{ install_dir }}/Makefile"
+    chdir: "{{ build_dir }}"
+    creates: "{{ build_dir }}/Makefile"
 
 - name: Make OpenSSH
   ansible.builtin.shell: make -j$(nproc) > /dev/null
   args:
-    chdir: "{{ install_dir }}"
-    creates: "{{ install_dir }}/libssl.so"
+    chdir: "{{ build_dir }}"
+    creates: "{{ build_dir }}/libssl.so"
 
 - name: Install OpenSSH
   ansible.builtin.command: make install
   args:
-    chdir: "{{ install_dir }}"
+    chdir: "{{ build_dir }}"
 
 - name: Find all SSH host keys
   ansible.builtin.find:

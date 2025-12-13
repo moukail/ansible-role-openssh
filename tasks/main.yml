@@ -11,4 +11,4 @@
 - name: Proceed to install OpenSSH
   ansible.builtin.include_tasks:
     file: install.yml
-  when: current_version.stdout != openssh_ver
+  when: current_version.stdout != openssh_version
