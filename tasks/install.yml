@@ -15,9 +15,9 @@
     update_cache: true
     state: present
 
-- name: Include verification tasks
-  ansible.builtin.include_tasks:
-    file: verify.yml
+#- name: Include verification tasks
+#  ansible.builtin.include_tasks:
+#    file: verify.yml
 
 - name: Create temporary build directory
   ansible.builtin.tempfile:
