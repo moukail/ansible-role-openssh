@@ -91,6 +91,11 @@
     path: "{{ tmp_dir.path }}"
     state: absent
 
+- name: Copy sshd.service
+  ansible.builtin.copy:
+    src: sshd.service
+    dest: /etc/systemd/system/sshd.service
+
 - name: Restart SSH
   ansible.builtin.service:
     name: sshd
